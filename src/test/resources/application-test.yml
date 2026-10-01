@@ -1,0 +1,34 @@
+spring:
+  datasource:
+    # LOCK_TIMEOUT is raised well above the default because the concurrency tests
+    # deliberately hold eight requests on the same row, and a short lock timeout
+    # would surface as a database lock error rather than as the application level
+    # conflict the tests are asserting.
+    url: jdbc:h2:mem:triptest;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;LOCK_TIMEOUT=10000
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+    hikari:
+      # An idempotent create needs a second connection while the first is still
+      # held, so the pool has to be wider than the number of concurrent requests
+      # or the inner transaction cannot get a connection.
+      maximum-pool-size: 20
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  sql:
+    init:
+      mode: never
+
+logging:
+  level:
+    com.anmol.trip: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.engine.SQL: WARN
